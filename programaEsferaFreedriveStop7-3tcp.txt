@@ -1,0 +1,97 @@
+ Program
+   Init Variables
+   Robot Program
+     'Definim dues surtTcp i surtToolFlange com a False per indicar quan es passa el limit.'
+     surtTcp≔ False 
+     surtToolFlange≔ False 
+     surtMig≔ False 
+     'Indiquem les coordenades del centre de l'esfera.'
+     centre≔p[-0.017,-0.392,0.236,0,0,0]
+     'Indiquem la variable de radi que te l'esfera.'
+     radi≔0.3
+     'Donem valor als radis del TCP i del punt del flange de l'eina.'
+     radiTCP≔0.05
+     radiMig≔0.09
+     radiFlange≔0.06
+     'Inicialitzem la variable retrocedir.'
+     retrocedir≔0.001
+     'Activem el moviment lliure.'
+     freedrive_mode()
+     Loop
+       If surtTcp≟ True  or (surtTcp≟ True  and surtToolFlange≟ True )
+         'La condicio es compleix, estem intentant superar la barrera virtual amb el TCP o tant amb el TCP com el flange.'
+         'Aturem el moviment lliure.'
+         end_freedrive_mode()
+         'Obtenim la posició del TCP per quedar-nos amb els graus dels joints.'
+         tcpActual≔get_actual_tcp_pose()
+         'Generem una variable centre amb els mateixos valors de x, y i z, pero amb els graus dels joints iguals que els TCP de l'eina.'
+         centre2≔p[centre[0],centre[1],centre[2],tcpActual[3],tcpActual[4],tcpActual[5]]
+         'Ens movem en direcció al nou centre fins que la distancia entre el centre i el tcp sigui més petit o igual a la del radi - retrocedir.'
+         MoveL
+           centre2
+             Until (expression)
+         'Ara ja tornem a estar a dins l'area de moviment permesa, surtTCP li donem False.'
+         surtTcp≔ False 
+         'Estem dins la condició que també poden estar tocant els dos, per tant, posem a fals surtToolFlange també.'
+         surtToolFlange≔ False 
+         'Tornem a activar el moviment.'
+         freedrive_mode()
+       If surtToolFlange≟ True 
+         'La condicio es compleix, estem intentant superar la barrera virtual amb el Flange de l'eina. '
+         'Aturem el moviment lliure.'
+         end_freedrive_mode()
+         'Obtenim la posició del flange de l'eina per quedar-nos amb els graus dels joints.'
+         toolFlangeAct≔get_actual_tool_flange_pose()
+         'Generem una variable centre amb els mateixos valors de x, y i z, pero amb els graus dels joints iguals que el flange de l'eina.'
+         centr2≔p[centre[0],centre[1],centre[2],toolFlangeAct[3],toolFlangeAct[4],toolFlangeAct[5]]
+         'Ens movem en direcció el centre fins que la distancia entre el centre i el flange sigui més petit o igual a la del radi - retrocedir.'
+         MoveL
+           centr2
+             Until (expression)
+         'Ara ja tornem a estar a dins l'area de moviment permesa, var_1 li donem False.'
+         surtToolFlange≔ False 
+         'Tornem a activar el moviment.'
+         freedrive_mode()
+       If surtMig≟ True 
+         'La condicio es compleix, estem intentant superar la barrera virtual amb el Flange de l'eina. '
+         'Aturem el moviment lliure.'
+         end_freedrive_mode()
+         'Obtenim la posició del flange de l'eina per quedar-nos amb els graus dels joints.'
+         tcpActual≔get_actual_tcp_pose()
+         toolFlangeAct≔get_actual_tool_flange_pose()
+         migAct≔p[(tcpActual[0]+toolFlangeAct[0])/2,(tcpActual[1]+toolFlangeAct[1])/2,(tcpActual[2]+toolFlangeAct[2])/2,tcpActual[3],tcpActual[4],tcpActual[5]]
+         'Generem una variable centre amb els mateixos valors de x, y i z, pero amb els graus dels joints iguals que el flange de l'eina.'
+         centr3≔p[centre[0],centre[1],centre[2],migAct[3],migAct[4],migAct[5]]
+         vectorDir≔[centre[0]-migAct[0],centre[1]-migAct[1],centre[2]-migAct[2]]
+         'Ens movem en direcció el centre fins que la distancia entre el centre i el flange sigui més petit o igual a la del radi - retrocedir.'
+         MoveL
+           Direction: Base
+             Until (distance)
+         'Ara ja tornem a estar a dins l'area de moviment permesa, var_1 li donem False.'
+         surtMig≔ False 
+         'Tornem a activar el moviment.'
+         freedrive_mode()
+       Wait: 0.01
+   Thread_1
+     Loop
+       'Obtenim les posicions del TCP i el toolFlange'
+       llistaPosTCP≔get_actual_tcp_pose()
+       llistaPosTool≔get_actual_tool_flange_pose()
+       'Obtenim el punt intermig.'
+       llistaPosMig≔p[(llistaPosTCP[0]+llistaPosTool[0])/2,(llistaPosTCP[1]+llistaPosTool[1])/2,(llistaPosTCP[2]+llistaPosTool[2])/2,llistaPosTCP[3],llistaPosTCP[4],llistaPosTCP[5]]
+       'Calculem la distancia entre dos punts, el centre i el tcp/toolFlange.'
+       distPunts≔radiTCP+sqrt(pow(llistaPosTCP[0]-centre[0],2)+pow(llistaPosTCP[1]-centre[1],2)+pow(llistaPosTCP[2]-centre[2],2))
+       distPuntTool≔radiFlange+ sqrt(pow(llistaPosTool[0]-centre[0],2)+pow(llistaPosTool[1]-centre[1],2)+pow(llistaPosTool[2]-centre[2],2))
+       distPuntMig≔radiMig+sqrt(pow(llistaPosMig[0]-centre[0],2)+pow(llistaPosMig[1]-centre[1],2)+pow(llistaPosMig[2]-centre[2],2))
+       'Si la distancia calculada supera el valor dmax, entrem a la condicio perque estem intentant superar el limit.'
+       If distPunts≥radi or distPunts≤-radi
+         'Supera el límit amb el TCP'
+         surtTcp≔ True 
+       If distPuntTool≥radi or distPuntTool≤-radi
+         'Supera el límit amb el flange de l'eina.'
+         surtToolFlange≔ True 
+       If distPuntMig≥radi or distPuntMig≤-radi
+         'Supera el límit amb el flange de l'eina.'
+         surtMig≔ True 
+       'Dins un loop que pot estar sense fer res varies vegades, sempres es millor indicar-li un wait.'
+       Wait: 0.01
