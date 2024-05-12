@@ -17,3 +17,9 @@ Tenint aquest pas previ, es pot descarregar el codi en format .urp que pot ser o
 En aquest repositori també es pot trobar el codi en format .txt que permet llegir el codi sense la necessitat de ser descarregat i obert amb el simulador fora de línia. 
 
 **MANUAL D'USUARI:**
+En aquest manual d'usuari s'indica una petita guia per activar el funcionament del codi.
+
+    1. Modificar els valors de les variables de l'inici del robot per personalitzar la barrera virtual (Opcional).
+    2. Col·locar l'eina del robot a l'interior de la zona de treball (interior de la barrera virtual) tot prement el botó de moviment lliure de la consola del robot.
+    3. Activar l'execució del codi de la consola del robot.
+    4. Moure manualment el braç robòtic dins el volum limitat i observar com la barrera virtual limita la sortida dels límits.
