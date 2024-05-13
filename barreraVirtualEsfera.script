@@ -1,4 +1,4 @@
-def programaEsferaFreedriveStop73tcp():
+def barreraVirtualEsfera():
   global _hidden_verificationVariable=0
   step_count_b7235f0a_cbb2_4c42_8fc8_6f2b845147a7 = 0.0
   thread Step_Counter_Thread_6ee0f1eb_1164_4362_bee5_6726ac1a9d95():
