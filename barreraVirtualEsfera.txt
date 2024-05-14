@@ -1,5 +1,5 @@
  Program
-   Variables Setup
+   Init Variables
    Robot Program
      'Definim dues surtTcp i surtToolFlange com a False per indicar quan es passa el limit.'
      surtTcp≔ False 
@@ -23,35 +23,23 @@
          'Aturem el moviment lliure.'
          end_freedrive_mode()
          'Obtenim la posició del TCP per quedar-nos amb els graus dels joints.'
-         tcpActual≔get_actual_tcp_pose()
-         'Generem una variable centre amb els mateixos valors de x, y i z, pero amb els graus dels joints iguals que els TCP de l'eina.'
-         centre2≔p[centre[0],centre[1],centre[2],tcpActual[3],tcpActual[4],tcpActual[5]]
-         'Ens movem en direcció al nou centre fins que la distancia entre el centre i el tcp sigui més petit o igual a la del radi - retrocedir.'
-         MoveL
-           centre2
-             Until (expression)
+         puntAct≔get_actual_tcp_pose()
+         'Cridem el subprograma que rectifica la posicio de l'eina.'
+         Call rectificarPosicio
          'Ara ja tornem a estar a dins l'area de moviment permesa, surtTCP li donem False.'
          surtTcp≔ False 
          'Estem dins la condició que també poden estar tocant els dos, per tant, posem a fals surtToolFlange també.'
          surtToolFlange≔ False 
-         'Tornem a activar el moviment.'
-         freedrive_mode()
        If surtToolFlange≟ True 
          'La condicio es compleix, estem intentant superar la barrera virtual amb el Flange de l'eina. '
          'Aturem el moviment lliure.'
          end_freedrive_mode()
          'Obtenim la posició del flange de l'eina per quedar-nos amb els graus dels joints.'
-         toolFlangeAct≔get_actual_tool_flange_pose()
-         'Generem una variable centre amb els mateixos valors de x, y i z, pero amb els graus dels joints iguals que el flange de l'eina.'
-         centr2≔p[centre[0],centre[1],centre[2],toolFlangeAct[3],toolFlangeAct[4],toolFlangeAct[5]]
-         'Ens movem en direcció el centre fins que la distancia entre el centre i el flange sigui més petit o igual a la del radi - retrocedir.'
-         MoveL
-           centr2
-             Until (expression)
+         puntAct≔get_actual_tool_flange_pose()
+         'Cridem el subprograma que rectifica la posicio de l'eina.'
+         Call rectificarPosicio
          'Ara ja tornem a estar a dins l'area de moviment permesa, surtToolFlange li donem False.'
          surtToolFlange≔ False 
-         'Tornem a activar el moviment.'
-         freedrive_mode()
        If surtMig≟ True 
          'La condicio es compleix, estem intentant superar la barrera virtual amb el punt del mig de l'eina. '
          'Aturem el moviment lliure.'
@@ -59,18 +47,23 @@
          'Obtenim la posició del punt del mig de l'eina.'
          tcpActual≔get_actual_tcp_pose()
          toolFlangeAct≔get_actual_tool_flange_pose()
-         migAct≔p[(tcpActual[0]+toolFlangeAct[0])/2,(tcpActual[1]+toolFlangeAct[1])/2,(tcpActual[2]+toolFlangeAct[2])/2,tcpActual[3],tcpActual[4],tcpActual[5]]
-         'Generem el vector director per anar des del punt mig de l'eina fins al centre.'
-         vectorDir≔[centre[0]-migAct[0],centre[1]-migAct[1],centre[2]-migAct[2]]
-         'Ens movem en direcció el centre fins que la distancia entre el centre i el flange sigui més petit o igual a la del radi - retrocedir.'
-         MoveL
-           Direction: Base
-             Until (distance)
+         puntAct≔p[(tcpActual[0]+toolFlangeAct[0])/2,(tcpActual[1]+toolFlangeAct[1])/2,(tcpActual[2]+toolFlangeAct[2])/2,tcpActual[3],tcpActual[4],tcpActual[5]]
+         'Cridem el subprograma que rectifica la posicio de l'eina.'
+         Call rectificarPosicio
          'Ara ja tornem a estar a dins l'area de moviment permesa, surtMig li donem False.'
          surtMig≔ False 
-         'Tornem a activar el moviment.'
-         freedrive_mode()
        Wait: 0.01
+   rectificarPosicio
+     'Subprograma cridat per tal de realitzar un moviment en una direccio concreta.'
+     'Abans de ser cridat, cal haver obtingut la la posicio actual d'interès per tal de fer el moviment.'
+     'Generem el vector director per anar des del punt actual de l'eina fins al centre.'
+     vectorDir≔[centre[0]-puntAct[0],centre[1]-puntAct[1],centre[2]-puntAct[2]]
+     'Ens movem en direcció el centre fins que s'hagi recorregut uns determinats mm.'
+     MoveL
+       Direction: Base
+         Until (distance)
+     'Tornem a activar el moviment.'
+     freedrive_mode()
    Thread_1
      Loop
        'Obtenim les posicions del TCP i el toolFlange'
