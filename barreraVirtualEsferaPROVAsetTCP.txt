@@ -1,5 +1,5 @@
  Program
-   Init Variables
+   Variables Setup
    Robot Program
      'Definim dues surtTcp i surtToolFlange com a False per indicar quan es passa el limit.'
      surtTcp≔ False 
@@ -13,8 +13,6 @@
      radiTCP≔0.05
      radiMig≔0.09
      radiFlange≔0.06
-     'Inicialitzem la variable retrocedir.'
-     retrocedir≔0.001
      'Activem el moviment lliure.'
      freedrive_mode()
      Loop
@@ -23,6 +21,8 @@
          'Aturem el moviment lliure.'
          end_freedrive_mode()
          'Obtenim la posició del TCP per quedar-nos amb els graus dels joints.'
+         Set DO[0]=On
+         Set Payload: Payload_TCPEina 0.0s
          puntAct≔get_actual_tcp_pose()
          'Cridem el subprograma que rectifica la posicio de l'eina.'
          Call rectificarPosicio
@@ -31,11 +31,13 @@
          'Estem dins la condició que també poden estar tocant els dos, per tant, posem a fals surtToolFlange també.'
          surtToolFlange≔ False 
        If surtToolFlange≟ True 
-         'La condicio es compleix, estem intentant superar la barrera virtual amb el Flange de l'eina. '
+         'La condicio es compleix, estem intentant superar la barrera virtual amb el cap de l'eina. '
          'Aturem el moviment lliure.'
          end_freedrive_mode()
          'Obtenim la posició del flange de l'eina per quedar-nos amb els graus dels joints.'
-         puntAct≔get_actual_tool_flange_pose()
+         Set DO[0]=On
+         Set Payload: Payload_CapEina 0.0s
+         puntAct≔get_actual_tcp_pose()
          'Cridem el subprograma que rectifica la posicio de l'eina.'
          Call rectificarPosicio
          'Ara ja tornem a estar a dins l'area de moviment permesa, surtToolFlange li donem False.'
@@ -45,8 +47,12 @@
          'Aturem el moviment lliure.'
          end_freedrive_mode()
          'Obtenim la posició del punt del mig de l'eina.'
+         Set DO[0]=On
+         Set Payload: Payload_TCPEina 0.0s
          tcpActual≔get_actual_tcp_pose()
-         toolFlangeAct≔get_actual_tool_flange_pose()
+         Set DO[0]=On
+         Set Payload: Payload_CapEina 0.0s
+         toolFlangeAct≔get_actual_tcp_pose()
          puntAct≔p[(tcpActual[0]+toolFlangeAct[0])/2,(tcpActual[1]+toolFlangeAct[1])/2,(tcpActual[2]+toolFlangeAct[2])/2,tcpActual[3],tcpActual[4],tcpActual[5]]
          'Cridem el subprograma que rectifica la posicio de l'eina.'
          Call rectificarPosicio
@@ -58,6 +64,8 @@
      'Abans de ser cridat, cal haver obtingut la la posicio actual d'interès per tal de fer el moviment.'
      'Generem el vector director per anar des del punt actual de l'eina fins al centre.'
      vectorDir≔[centre[0]-puntAct[0],centre[1]-puntAct[1],centre[2]-puntAct[2]]
+     'Apliquem un Wait per tal de deixar temps per pensar,sino es mou alla on li vagi.'
+     Wait: 0.01
      'Ens movem en direcció el centre fins que s'hagi recorregut uns determinats mm.'
      MoveL
        Direction: Base
@@ -66,9 +74,13 @@
      freedrive_mode()
    Thread_1
      Loop
-       'Obtenim les posicions del TCP i el toolFlange'
+       'Obtenim les posicions del TCP i el cap de l'eina.'
+       Set DO[0]=On
+       Set Payload: Payload_TCPEina 0.0s
        llistaPosTCP≔get_actual_tcp_pose()
-       llistaPosTool≔get_actual_tool_flange_pose()
+       Set DO[0]=On
+       Set Payload: Payload_CapEina 0.0s
+       llistaPosTool≔get_actual_tcp_pose()
        'Obtenim el punt intermig.'
        llistaPosMig≔p[(llistaPosTCP[0]+llistaPosTool[0])/2,(llistaPosTCP[1]+llistaPosTool[1])/2,(llistaPosTCP[2]+llistaPosTool[2])/2,llistaPosTCP[3],llistaPosTCP[4],llistaPosTCP[5]]
        'Calculem la distancia entre dos punts, el centre i el tcp, toolFlange o punt del mig.'

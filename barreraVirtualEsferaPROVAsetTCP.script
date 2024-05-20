@@ -1,0 +1,362 @@
+def barreraVirtualEsferaPROVAsetTCP():
+  global _hidden_verificationVariable=0
+  set_gravity([0.0, 0.0, 9.82])
+  set_tcp(p[0.0,0.0,0.13501,0.0,0.0,0.0])
+  set_target_payload(0.820000, [0.001000, -0.004000, 0.047000], [0.001106, 0.001106, 0.001106, 0.000000, 0.000000, 0.000000])
+  set_safety_mode_transition_hardness(1)
+  set_standard_analog_input_domain(0, 1)
+  set_standard_analog_input_domain(1, 1)
+  set_tool_analog_input_domain(0, 1)
+  set_tool_analog_input_domain(1, 1)
+  set_analog_outputdomain(0, 0)
+  set_analog_outputdomain(1, 0)
+  set_input_actions_to_default()
+  set_tool_communication(True, 115200, 0, 1, 1.5, 3.5)
+  set_tool_output_mode(0)
+  set_tool_digital_output_mode(0, 1)
+  set_tool_digital_output_mode(1, 1)
+  set_tool_voltage(24)
+  global Pallet_1_cnt_1=21
+  global Pallet_1_cnt=7
+  global Plane_1=p[0.0,-0.4,0.3,1.5707963267948972,2.8855060405826856E-16,-2.885506040582686E-16]
+  step_count_21a171f8_186e_4d2c_acbe_45a902ca3c9a = 0.0
+  thread Step_Counter_Thread_b25763c0_9da4_4999_86c1_d32637677ddc():
+    while (True):
+      step_count_21a171f8_186e_4d2c_acbe_45a902ca3c9a = step_count_21a171f8_186e_4d2c_acbe_45a902ca3c9a + 1.0
+      sync()
+    end
+  end
+  run Step_Counter_Thread_b25763c0_9da4_4999_86c1_d32637677ddc()
+  def calculate_point_to_move_towards(feature, direction, position_distance):
+    local posDir=[direction[0], direction[1], direction[2]]
+    if (norm(posDir) < 1e-6):
+      return get_target_waypoint()
+    end
+    local direction_vector_normalized=normalize(posDir)
+    local displacement_pose=p[direction_vector_normalized[0] * position_distance,direction_vector_normalized[1] * position_distance,direction_vector_normalized[2] * position_distance,0,0,0]
+    local wanted_displacement_in_base_frame=pose_sub(pose_trans(feature, displacement_pose), feature)
+    return pose_add(get_target_waypoint(), wanted_displacement_in_base_frame)
+  end
+  def rectificarPosicio():
+    $ 61 "rectificarPosicio" "noBreak"
+    $ 62 "'Subprograma cridat per tal de realitzar un moviment en una direccio concreta.'"
+    # 'Subprograma cridat per tal de realitzar un moviment en una direccio concreta.'
+    $ 63 "'Abans de ser cridat, cal haver obtingut la la posicio actual d'interès per tal de fer el moviment.'"
+    # 'Abans de ser cridat, cal haver obtingut la la posicio actual d'interès per tal de fer el moviment.'
+    $ 64 "'Generem el vector director per anar des del punt actual de l'eina fins al centre.'"
+    # 'Generem el vector director per anar des del punt actual de l'eina fins al centre.'
+    $ 65 "vectorDir≔[centre[0]-puntAct[0],centre[1]-puntAct[1],centre[2]-puntAct[2]]"
+    global vectorDir=[centre[0]-puntAct[0],centre[1]-puntAct[1],centre[2]-puntAct[2]]
+    $ 66 "'Apliquem un Wait per tal de deixar temps per pensar,sino es mou alla on li vagi.'"
+    # 'Apliquem un Wait per tal de deixar temps per pensar,sino es mou alla on li vagi.'
+    $ 67 "Wait: 0.01"
+    sleep(0.01)
+    $ 68 "'Ens movem en direcció el centre fins que s'hagi recorregut uns determinats mm.'"
+    # 'Ens movem en direcció el centre fins que s'hagi recorregut uns determinats mm.'
+    $ 69 "MoveL"
+    $ 70 "Direction: Base"
+    global move_thread_flag_70=0
+    thread move_thread_70():
+      enter_critical
+      move_thread_flag_70 = 1
+      local towardsPos=calculate_point_to_move_towards(p[0.0,0.0,0.0,0.0,0.0,0.0], vectorDir, 0.001)
+      movel(towardsPos, a=0.15, v=0.025)
+      move_thread_flag_70 = 2
+      exit_critical
+    end
+    move_thread_flag_70 = 0
+    move_thread_han_70 = run move_thread_70()
+    while (True):
+      sleep(1.0E-10)
+      if (move_thread_flag_70 > 1):
+        join move_thread_han_70
+        $ 71 "Until (distance)"
+        break
+      end
+      sync()
+    end
+    $ 72 "'Tornem a activar el moviment.'"
+    # 'Tornem a activar el moviment.'
+    $ 73 "freedrive_mode()"
+    freedrive_mode()
+  end
+  $ 74 "Thread_1"
+  thread Thread_1():
+    while (True):
+      $ 75 "Loop"
+      while (True):
+        $ 76 "'Obtenim les posicions del TCP i el cap de l'eina.'"
+        # 'Obtenim les posicions del TCP i el cap de l'eina.'
+        $ 77 "Set DO[0]=On"
+        set_standard_digital_out(0, True)
+        set_tcp(p[-0.071,-0.14801,0.1176,0.0,0.0,0.0])
+        $ 78 "Set Payload: Payload_TCPEina 0.0s"
+        set_target_payload(0.820000, [0.004000, -0.009000, 0.048000], [0.001106, 0.001106, 0.001106, 0.000000, 0.000000, 0.000000], 0.000000)
+        $ 79 "llistaPosTCP≔get_actual_tcp_pose()"
+        global llistaPosTCP= get_actual_tcp_pose ()
+        $ 80 "Set DO[0]=On"
+        set_standard_digital_out(0, True)
+        set_tcp(p[-0.07237805867785846,0.03487823235901087,0.11496915990614842,0.0,0.0,0.0])
+        $ 81 "Set Payload: Payload_CapEina 0.0s"
+        set_target_payload(0.840000, [-0.003000, -0.016000, 0.041000], [0.001151, 0.001151, 0.001151, 0.000000, 0.000000, 0.000000], 0.000000)
+        $ 82 "llistaPosTool≔get_actual_tcp_pose()"
+        global llistaPosTool= get_actual_tcp_pose ()
+        $ 83 "'Obtenim el punt intermig.'"
+        # 'Obtenim el punt intermig.'
+        $ 84 "llistaPosMig≔p[(llistaPosTCP[0]+llistaPosTool[0])/2,(llistaPosTCP[1]+llistaPosTool[1])/2,(llistaPosTCP[2]+llistaPosTool[2])/2,llistaPosTCP[3],llistaPosTCP[4],llistaPosTCP[5]]"
+        global llistaPosMig=p[(llistaPosTCP[0]+llistaPosTool[0])/2,(llistaPosTCP[1]+llistaPosTool[1])/2,(llistaPosTCP[2]+llistaPosTool[2])/2,llistaPosTCP[3],llistaPosTCP[4],llistaPosTCP[5]]
+        $ 85 "'Calculem la distancia entre dos punts, el centre i el tcp, toolFlange o punt del mig.'"
+        # 'Calculem la distancia entre dos punts, el centre i el tcp, toolFlange o punt del mig.'
+        $ 86 "distPunts≔radiTCP+sqrt(pow(llistaPosTCP[0]-centre[0],2)+pow(llistaPosTCP[1]-centre[1],2)+pow(llistaPosTCP[2]-centre[2],2))"
+        global distPunts=radiTCP+sqrt(pow(llistaPosTCP[0]-centre[0],2)+pow(llistaPosTCP[1]-centre[1],2)+pow(llistaPosTCP[2]-centre[2],2))
+        $ 87 "distPuntTool≔radiFlange+ sqrt(pow(llistaPosTool[0]-centre[0],2)+pow(llistaPosTool[1]-centre[1],2)+pow(llistaPosTool[2]-centre[2],2))"
+        global distPuntTool=radiFlange+ sqrt(pow(llistaPosTool[0]-centre[0],2)+pow(llistaPosTool[1]-centre[1],2)+pow(llistaPosTool[2]-centre[2],2))
+        $ 88 "distPuntMig≔radiMig+sqrt(pow(llistaPosMig[0]-centre[0],2)+pow(llistaPosMig[1]-centre[1],2)+pow(llistaPosMig[2]-centre[2],2))"
+        global distPuntMig=radiMig+sqrt(pow(llistaPosMig[0]-centre[0],2)+pow(llistaPosMig[1]-centre[1],2)+pow(llistaPosMig[2]-centre[2],2))
+        $ 89 "'Si la distancia calculada supera el valor radi, entrem a la condicio perque estem intentant superar el limit.'"
+        # 'Si la distancia calculada supera el valor radi, entrem a la condicio perque estem intentant superar el limit.'
+        $ 90 "If distPunts≥radi or distPunts≤-radi"
+        global thread_flag_90=0
+        thread Thread_if_90():
+          $ 91 "'Supera el límit amb el TCP'"
+          # 'Supera el límit amb el TCP'
+          $ 92 "surtTcp≔ True "
+          global surtTcp=  True  
+          thread_flag_90 = 1
+        end
+        if (distPunts >= radi  or  distPunts <= -radi):
+          global thread_handler_90=run Thread_if_90()
+          while (thread_flag_90 == 0):
+            if not(distPunts >= radi  or  distPunts <= -radi):
+              kill thread_handler_90
+              thread_flag_90 = 2
+            else:
+              sync()
+            end
+          end
+        else:
+          thread_flag_90 = 2
+        end
+        $ 93 "If distPuntTool≥radi or distPuntTool≤-radi"
+        global thread_flag_93=0
+        thread Thread_if_93():
+          $ 94 "'Supera el límit amb el flange de l'eina.'"
+          # 'Supera el límit amb el flange de l'eina.'
+          $ 95 "surtToolFlange≔ True "
+          global surtToolFlange=  True  
+          thread_flag_93 = 1
+        end
+        if (distPuntTool >= radi  or  distPuntTool <= -radi):
+          global thread_handler_93=run Thread_if_93()
+          while (thread_flag_93 == 0):
+            if not(distPuntTool >= radi  or  distPuntTool <= -radi):
+              kill thread_handler_93
+              thread_flag_93 = 2
+            else:
+              sync()
+            end
+          end
+        else:
+          thread_flag_93 = 2
+        end
+        $ 96 "If distPuntMig≥radi or distPuntMig≤-radi"
+        global thread_flag_96=0
+        thread Thread_if_96():
+          $ 97 "'Supera el límit amb el punt mig.'"
+          # 'Supera el límit amb el punt mig.'
+          $ 98 "surtMig≔ True "
+          global surtMig=  True  
+          thread_flag_96 = 1
+        end
+        if (distPuntMig >= radi  or  distPuntMig <= -radi):
+          global thread_handler_96=run Thread_if_96()
+          while (thread_flag_96 == 0):
+            if not(distPuntMig >= radi  or  distPuntMig <= -radi):
+              kill thread_handler_96
+              thread_flag_96 = 2
+            else:
+              sync()
+            end
+          end
+        else:
+          thread_flag_96 = 2
+        end
+        $ 99 "'Dins un loop que pot estar sense fer res varies vegades, sempres es millor indicar-li un wait.'"
+        # 'Dins un loop que pot estar sense fer res varies vegades, sempres es millor indicar-li un wait.'
+        $ 100 "Wait: 0.01"
+        sleep(0.01)
+      end
+    end
+  end
+  threadId_Thread_1 = run Thread_1()
+  $ 2 "Robot Program"
+  $ 3 "'Definim dues surtTcp i surtToolFlange com a False per indicar quan es passa el limit.'"
+  # 'Definim dues surtTcp i surtToolFlange com a False per indicar quan es passa el limit.'
+  $ 4 "surtTcp≔ False "
+  global surtTcp=  False  
+  $ 5 "surtToolFlange≔ False "
+  global surtToolFlange=  False  
+  $ 6 "surtMig≔ False "
+  global surtMig=  False  
+  $ 7 "'Indiquem les coordenades del centre de l'esfera.'"
+  # 'Indiquem les coordenades del centre de l'esfera.'
+  $ 8 "centre≔p[-0.017,-0.392,0.236,0,0,0]"
+  global centre=p[-0.017,-0.392,0.236,0,0,0]
+  $ 9 "'Indiquem la variable de radi que te l'esfera.'"
+  # 'Indiquem la variable de radi que te l'esfera.'
+  $ 10 "radi≔0.3"
+  global radi=0.3
+  $ 11 "'Donem valor als radis del TCP,del punt del flange de l'eina i el punt mig.'"
+  # 'Donem valor als radis del TCP,del punt del flange de l'eina i el punt mig.'
+  $ 12 "radiTCP≔0.05"
+  global radiTCP=0.05
+  $ 13 "radiMig≔0.09"
+  global radiMig=0.09
+  $ 14 "radiFlange≔0.06"
+  global radiFlange=0.06
+  $ 15 "'Activem el moviment lliure.'"
+  # 'Activem el moviment lliure.'
+  $ 16 "freedrive_mode()"
+  freedrive_mode()
+  $ 17 "Loop"
+  while (True):
+    $ 18 "If surtTcp≟ True  or (surtTcp≟ True  and surtToolFlange≟ True )"
+    global thread_flag_18=0
+    thread Thread_if_18():
+      $ 19 "'La condicio es compleix, estem intentant superar la barrera virtual amb el TCP o tant amb el TCP com el flange.'"
+      # 'La condicio es compleix, estem intentant superar la barrera virtual amb el TCP o tant amb el TCP com el flange.'
+      $ 20 "'Aturem el moviment lliure.'"
+      # 'Aturem el moviment lliure.'
+      $ 21 "end_freedrive_mode()"
+      end_freedrive_mode()
+      $ 22 "'Obtenim la posició del TCP per quedar-nos amb els graus dels joints.'"
+      # 'Obtenim la posició del TCP per quedar-nos amb els graus dels joints.'
+      $ 23 "Set DO[0]=On"
+      set_standard_digital_out(0, True)
+      set_tcp(p[-0.071,-0.14801,0.1176,0.0,0.0,0.0])
+      $ 24 "Set Payload: Payload_TCPEina 0.0s"
+      set_target_payload(0.820000, [0.004000, -0.009000, 0.048000], [0.001106, 0.001106, 0.001106, 0.000000, 0.000000, 0.000000], 0.000000)
+      $ 25 "puntAct≔get_actual_tcp_pose()"
+      global puntAct= get_actual_tcp_pose ()
+      $ 26 "'Cridem el subprograma que rectifica la posicio de l'eina.'"
+      # 'Cridem el subprograma que rectifica la posicio de l'eina.'
+      $ 27 "Call rectificarPosicio"
+      rectificarPosicio()
+      $ 28 "'Ara ja tornem a estar a dins l'area de moviment permesa, surtTCP li donem False.'"
+      # 'Ara ja tornem a estar a dins l'area de moviment permesa, surtTCP li donem False.'
+      $ 29 "surtTcp≔ False "
+      global surtTcp=  False  
+      $ 30 "'Estem dins la condició que també poden estar tocant els dos, per tant, posem a fals surtToolFlange també.'"
+      # 'Estem dins la condició que també poden estar tocant els dos, per tant, posem a fals surtToolFlange també.'
+      $ 31 "surtToolFlange≔ False "
+      global surtToolFlange=  False  
+      thread_flag_18 = 1
+    end
+    if (surtTcp ==   True    or  (surtTcp ==   True    and  surtToolFlange ==   True  )):
+      global thread_handler_18=run Thread_if_18()
+      while (thread_flag_18 == 0):
+        if not(surtTcp ==   True    or  (surtTcp ==   True    and  surtToolFlange ==   True  )):
+          kill thread_handler_18
+          thread_flag_18 = 2
+        else:
+          sync()
+        end
+      end
+    else:
+      thread_flag_18 = 2
+    end
+    $ 32 "If surtToolFlange≟ True "
+    global thread_flag_32=0
+    thread Thread_if_32():
+      $ 33 "'La condicio es compleix, estem intentant superar la barrera virtual amb el cap de l'eina. '"
+      # 'La condicio es compleix, estem intentant superar la barrera virtual amb el cap de l'eina. '
+      $ 34 "'Aturem el moviment lliure.'"
+      # 'Aturem el moviment lliure.'
+      $ 35 "end_freedrive_mode()"
+      end_freedrive_mode()
+      $ 36 "'Obtenim la posició del flange de l'eina per quedar-nos amb els graus dels joints.'"
+      # 'Obtenim la posició del flange de l'eina per quedar-nos amb els graus dels joints.'
+      $ 37 "Set DO[0]=On"
+      set_standard_digital_out(0, True)
+      set_tcp(p[-0.07237805867785846,0.03487823235901087,0.11496915990614842,0.0,0.0,0.0])
+      $ 38 "Set Payload: Payload_CapEina 0.0s"
+      set_target_payload(0.840000, [-0.003000, -0.016000, 0.041000], [0.001151, 0.001151, 0.001151, 0.000000, 0.000000, 0.000000], 0.000000)
+      $ 39 "puntAct≔get_actual_tcp_pose()"
+      global puntAct= get_actual_tcp_pose ()
+      $ 40 "'Cridem el subprograma que rectifica la posicio de l'eina.'"
+      # 'Cridem el subprograma que rectifica la posicio de l'eina.'
+      $ 41 "Call rectificarPosicio"
+      rectificarPosicio()
+      $ 42 "'Ara ja tornem a estar a dins l'area de moviment permesa, surtToolFlange li donem False.'"
+      # 'Ara ja tornem a estar a dins l'area de moviment permesa, surtToolFlange li donem False.'
+      $ 43 "surtToolFlange≔ False "
+      global surtToolFlange=  False  
+      thread_flag_32 = 1
+    end
+    if (surtToolFlange ==   True  ):
+      global thread_handler_32=run Thread_if_32()
+      while (thread_flag_32 == 0):
+        if not(surtToolFlange ==   True  ):
+          kill thread_handler_32
+          thread_flag_32 = 2
+        else:
+          sync()
+        end
+      end
+    else:
+      thread_flag_32 = 2
+    end
+    $ 44 "If surtMig≟ True "
+    global thread_flag_44=0
+    thread Thread_if_44():
+      $ 45 "'La condicio es compleix, estem intentant superar la barrera virtual amb el punt del mig de l'eina. '"
+      # 'La condicio es compleix, estem intentant superar la barrera virtual amb el punt del mig de l'eina. '
+      $ 46 "'Aturem el moviment lliure.'"
+      # 'Aturem el moviment lliure.'
+      $ 47 "end_freedrive_mode()"
+      end_freedrive_mode()
+      $ 48 "'Obtenim la posició del punt del mig de l'eina.'"
+      # 'Obtenim la posició del punt del mig de l'eina.'
+      $ 49 "Set DO[0]=On"
+      set_standard_digital_out(0, True)
+      set_tcp(p[-0.071,-0.14801,0.1176,0.0,0.0,0.0])
+      $ 50 "Set Payload: Payload_TCPEina 0.0s"
+      set_target_payload(0.820000, [0.004000, -0.009000, 0.048000], [0.001106, 0.001106, 0.001106, 0.000000, 0.000000, 0.000000], 0.000000)
+      $ 51 "tcpActual≔get_actual_tcp_pose()"
+      global tcpActual= get_actual_tcp_pose ()
+      $ 52 "Set DO[0]=On"
+      set_standard_digital_out(0, True)
+      set_tcp(p[-0.07237805867785846,0.03487823235901087,0.11496915990614842,0.0,0.0,0.0])
+      $ 53 "Set Payload: Payload_CapEina 0.0s"
+      set_target_payload(0.840000, [-0.003000, -0.016000, 0.041000], [0.001151, 0.001151, 0.001151, 0.000000, 0.000000, 0.000000], 0.000000)
+      $ 54 "toolFlangeAct≔get_actual_tcp_pose()"
+      global toolFlangeAct= get_actual_tcp_pose ()
+      $ 55 "puntAct≔p[(tcpActual[0]+toolFlangeAct[0])/2,(tcpActual[1]+toolFlangeAct[1])/2,(tcpActual[2]+toolFlangeAct[2])/2,tcpActual[3],tcpActual[4],tcpActual[5]]"
+      global puntAct=p[(tcpActual[0]+toolFlangeAct[0])/2,(tcpActual[1]+toolFlangeAct[1])/2,(tcpActual[2]+toolFlangeAct[2])/2,tcpActual[3],tcpActual[4],tcpActual[5]]
+      $ 56 "'Cridem el subprograma que rectifica la posicio de l'eina.'"
+      # 'Cridem el subprograma que rectifica la posicio de l'eina.'
+      $ 57 "Call rectificarPosicio"
+      rectificarPosicio()
+      $ 58 "'Ara ja tornem a estar a dins l'area de moviment permesa, surtMig li donem False.'"
+      # 'Ara ja tornem a estar a dins l'area de moviment permesa, surtMig li donem False.'
+      $ 59 "surtMig≔ False "
+      global surtMig=  False  
+      thread_flag_44 = 1
+    end
+    if (surtMig ==   True  ):
+      global thread_handler_44=run Thread_if_44()
+      while (thread_flag_44 == 0):
+        if not(surtMig ==   True  ):
+          kill thread_handler_44
+          thread_flag_44 = 2
+        else:
+          sync()
+        end
+      end
+    else:
+      thread_flag_44 = 2
+    end
+    $ 60 "Wait: 0.01"
+    sleep(0.01)
+  end
+end
